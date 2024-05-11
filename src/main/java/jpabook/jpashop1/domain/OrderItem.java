@@ -1,13 +1,15 @@
 package jpabook.jpashop1.domain;
 
 import jakarta.persistence.*;
-import jpabook.jpashop1.item.Item;
+import jpabook.jpashop1.domain.item.Item;
 import lombok.Getter;
+import lombok.Setter;
 
 import static jakarta.persistence.FetchType.*;
 
 @Entity
-@Getter
+@Getter @Setter
+@Table(name = "order_item")
 public class OrderItem {
 
     @Id @GeneratedValue

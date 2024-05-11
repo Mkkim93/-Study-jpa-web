@@ -2,12 +2,13 @@ package jpabook.jpashop1.domain;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Getter
+@Getter @Setter
 public class Member {
 
     @Id @GeneratedValue
@@ -19,5 +20,8 @@ public class Member {
     @Embedded
     private Address address;
 
+    @OneToMany(mappedBy = "member")
     private List<Order> orders = new ArrayList<>();
+
+
 }

@@ -1,26 +1,40 @@
 package jpabook.jpashop1.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jpabook.jpashop1.item.Item;
+import jakarta.persistence.*;
+import jpabook.jpashop1.domain.item.Item;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static jakarta.persistence.FetchType.*;
+
 @Entity
-@Getter
+@Getter @Setter
 public class Category {
 
     @Id @GeneratedValue
+    @Column(name = "category_id")
     private Long id;
 
     private String name;
 
+    @ManyToMany
+    @JoinTable(name = "category_item",
+    joinColumns = @JoinColumn(name = "category_id"),
+    inverseJoinColumns = @JoinColumn(name = "item_id"))
     private List<Item> items = new ArrayList<>();
 
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "parent_id")
     private Category parent;
 
-    private List<Category> child = new ArrayList<Category>();
+    @OneToMany(mappedBy = "parent")
+    private List<Category> child = new ArrayList<>();
+
+    public void addChildCategory(Category child) {
+        this.child.add(child);
+        child.setParent(this);
+    }
 }
