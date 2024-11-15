@@ -1,5 +1,6 @@
 package jpabook.jpashop1.domain.item;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jpabook.jpashop1.domain.Category;
 import jpabook.jpashop1.exception.NotEnoughStockException;

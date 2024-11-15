@@ -31,16 +31,18 @@ public class OrderRepository {
     public List<Order> findAllByString(OrderSearch orderSearch) {
         String jpql = "SELECT o FROM Order o JOIN o.member m";
         boolean isFirstCondition = true;
+
         // 주문 상태 검색
         if (orderSearch.getOrderStatus() != null) {
-            jpql += " WHERE";
-            isFirstCondition = false;
-        } else {
-            jpql += " AND";
+            if (isFirstCondition) {
+                jpql += " WHERE";
+                isFirstCondition = false;
+            }
+            jpql += " o.status = :status";
         }
-        jpql += " o.status = :status";
 
-        if (StringUtils.hasText(orderSearch.getMemberName())) { // hastext :
+        // 회원 이름 검색
+        if (StringUtils.hasText(orderSearch.getMemberName())) {
             if (isFirstCondition) {
                 jpql += " WHERE";
                 isFirstCondition = false;
@@ -49,8 +51,9 @@ public class OrderRepository {
             }
             jpql += " m.name LIKE :name";
         }
+
         TypedQuery<Order> query = em.createQuery(jpql, Order.class)
-                .setMaxResults(1000); // 페이징 1000건
+                .setMaxResults(1000); // 페이징 1000건 제한
 
         if (orderSearch.getOrderStatus() != null) {
             query = query.setParameter("status", orderSearch.getOrderStatus());
@@ -92,4 +95,13 @@ public class OrderRepository {
         return query.getResultList();
     }
 
+    // jpql fetch join
+    // 모든 데이터를 조회 (재사용성 o)
+    public List<Order> findAllWithMemberDelivery() {
+        return em.createQuery(
+                "select o from Order o" +
+                        " join fetch o.member m" +
+                        " join fetch o.delivery", Order.class
+        ).getResultList();
+    }
 }
