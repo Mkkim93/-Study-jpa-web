@@ -1,5 +1,6 @@
 package jpabook.jpashop1.domain;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jpabook.jpashop1.domain.item.Item;
@@ -22,6 +23,7 @@ public class OrderItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id")
+    @JsonIgnore
     private Item item; //주문 상품
 
     @JsonIgnore
@@ -41,6 +43,7 @@ public class OrderItem {
         item.removeStock(count);
         return orderItem;
     }
+
     //==비즈니스 로직==//
     /** 주문 취소 */
     public void cancel() {
