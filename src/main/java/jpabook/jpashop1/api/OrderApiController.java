@@ -6,23 +6,28 @@ import jpabook.jpashop1.domain.OrderItem;
 import jpabook.jpashop1.domain.OrderStatus;
 import jpabook.jpashop1.repository.OrderRepository;
 import jpabook.jpashop1.repository.OrderSearch;
-import lombok.Data;
+import jpabook.jpashop1.repository.order.query.OrderFlatDto;
+import jpabook.jpashop1.repository.order.query.OrderItemQueryDto;
+import jpabook.jpashop1.repository.order.query.OrderQueryDto;
+import jpabook.jpashop1.repository.order.query.OrderQueryRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.awt.print.Pageable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.*;
 
 @RestController
 @RequiredArgsConstructor
 public class OrderApiController {
 
     private final OrderRepository orderRepository;
+    private final OrderQueryRepository orderQueryRepository;
 
     @GetMapping("/api/v1/orders")
     public List<Order> ordersV1() {
@@ -66,6 +71,38 @@ public class OrderApiController {
                 .map(o -> new OrderDto(o))
                 .collect(Collectors.toList());
         return collect;
+    }
+
+    @GetMapping("/api/v4/orders")
+    public List<OrderQueryDto> ordersV4() {
+       return orderQueryRepository.findOrderQueryDtos();
+    }
+
+    @GetMapping("/api/v5/orders")
+    public List<OrderQueryDto> ordersV5() {
+        return orderQueryRepository.findAllByDto_optimization();
+    }
+
+    @GetMapping("/api/v6/orders")
+    public List<OrderQueryDto> ordersV6() {
+        List<OrderFlatDto> flats = orderQueryRepository.findAllByDto_flat();
+
+        /**
+         * 0. OrderFlatDto 를 OrderQueryDto 로 변환해서 계층형 데이터로 리턴하는 코드.
+         * 1. groupingBy 를 통해 OrderQueryDto(주문 정보)를 키로 지정하고,
+         *    List<OrderItemQueryDto>(주문 항목 리스트)를 값으로 묶는다.
+         * 2. entrySet() 을 통해 groupingBy 로 생성된 Map 을 순회하며,
+         *    OrderQueryDto 를 키와 값으로 새로 생성하여 리스트로 반환한다.
+         */
+        return flats.stream()
+                .collect(groupingBy(o -> new OrderQueryDto(o.getOrderId(),
+                            o.getName(), o.getOrderDate(), o.getOrderStatus(), o.getAddress()),
+                        mapping(o -> new OrderItemQueryDto(o.getOrderId(),
+                                o.getItemName(), o.getOrderPrice(), o.getCount()), toList())
+                )).entrySet().stream()
+                        .map(e -> new OrderQueryDto(e.getKey().getOrderId(),
+                                e.getKey().getName(), e.getKey().getOrderDate(), e.getKey().getOrderStatus(),
+                                e.getKey().getAddress(), e.getValue())).collect(toList());
     }
 
     @Getter
